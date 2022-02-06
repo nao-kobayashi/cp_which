@@ -21,14 +21,23 @@ std::vector<std::string> split(const std::string& path_env, const std::string& s
     return list;
 }
 
+std::filesystem::path pathCombine(const std::string& directory, const std::string& fileName) {
+    using namespace std::filesystem;
+    return path(directory) / path(fileName);
+}
+
+bool pathExists(const std::filesystem::path& path) {
+    using namespace std::filesystem;
+    return exists(path);
+}
+
 std::string getFilePath(const std::string& directory, const std::string& fileName) {
     using namespace std::filesystem;
 
-    const auto dir = path(directory);
-    if (!exists(dir))
+    if (!pathExists(path(directory)))
         return "";
 
-    const auto full_path = path(directory) / path(fileName);
+    const auto full_path = pathCombine(directory, fileName);
     const directory_iterator iter(directory);
     for (auto &file: directory_iterator(directory)) {
         if (file.path().string() == full_path.string()) {
@@ -47,17 +56,23 @@ int main(int argc, char *argv[]) {
 
     const std::string search_file = std::string(argv[1]);
     const char* p = std::getenv("PATH");
-    if (p == NULL) {
+    if (p == nullptr) {
         std::cout << "environment variable \"PATH\" read error." << std::endl;
         return -1;
     }
 
     const std::string path_env = std::string(p);
     auto paths = split(path_env, path_separator);
-    for (auto &p : paths) {
-        const auto file = getFilePath(p, search_file);
-        if (!file.empty()) {
-            std::cout << file << std::endl;
+    for (auto &path : paths) {
+//        const auto file = getFilePath(path, search_file);
+//        if (!file.empty()) {
+//            std::cout << file << std::endl;
+//            return 0;
+//        }
+
+        auto combine_path = pathCombine(path, search_file);
+        if (pathExists(combine_path)) {
+            std::cout << combine_path.string() << std::endl;
             return 0;
         }
     }
